@@ -5,11 +5,10 @@ import struct
 import sys
 from tkinter import Tk, filedialog, messagebox
 
-from numpy import absolute
 
 from config import *
 
-SERVER_IP = '2001:cc0:2020:1:4521:2623:99ff:6687'
+SERVER_IP = '2400:dd01:103a:2018:4521:2623:99ff:6687'
 
 class Client():
     socket = None
@@ -28,7 +27,7 @@ class Client():
         absolute_path = file_path[1]
         print("Start send file {}, relative: {}".format(absolute_path, relative_path))
 
-        fhead = struct.pack('512sl', relative_path.encode("utf-8"), os.stat(absolute_path).st_size)
+        fhead = struct.pack('256sq', relative_path.encode("utf-8"), os.stat(absolute_path).st_size)
         self.socket.send(fhead)
         fp = open(absolute_path, 'rb')
         while True:
