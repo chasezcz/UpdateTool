@@ -33,11 +33,11 @@ def deal_data(conn, addr):
 
     while True:
       
-        fileinfo_size = struct.calcsize('512sl')
+        fileinfo_size = struct.calcsize('256sq')
         buf = conn.recv(fileinfo_size)
 
         if buf:
-            fn, filesize = struct.unpack('512sl', buf)
+            fn, filesize = struct.unpack('256sq', buf)
             relative_path = fn.strip(b'\00')
 
             relative_path = relative_path.decode()
@@ -84,7 +84,8 @@ def get_ipv6_address():
     output = output.split("以太网适配器 以太网:")[1]
 
     result = re.findall(r"(([a-f0-9]{1,4}:){7}[a-f0-9]{1,4})", output, re.I)
-    return result[0][0]
+    # return result[0][0]
+    return "2400:dd01:103a:2018:4521:2623:99ff:6687"
 
 
 if __name__ == "__main__":
