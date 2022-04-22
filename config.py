@@ -1,0 +1,4 @@
+SERVER_PORT = 51010
+BUFFER_SIZE = 1024
+
+DOWNLOAD_PATH = './downloads'
