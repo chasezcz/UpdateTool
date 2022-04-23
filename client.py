@@ -5,10 +5,9 @@ import struct
 import sys
 from tkinter import Tk, filedialog, messagebox
 
+from tqdm import tqdm
 
 from config import *
-
-SERVER_IP = '2400:dd01:103a:2018:4521:2623:99ff:6687'
 
 class Client():
     socket = None
@@ -26,16 +25,19 @@ class Client():
         relative_path = file_path[0]
         absolute_path = file_path[1]
         print("Start send file {}, relative: {}".format(absolute_path, relative_path))
-
-        fhead = struct.pack('256sq', relative_path.encode("utf-8"), os.stat(absolute_path).st_size)
+        filesize = os.stat(absolute_path).st_size
+        fhead = struct.pack('256sq', relative_path.encode("utf-8"), filesize)
         self.socket.send(fhead)
         fp = open(absolute_path, 'rb')
-        while True:
-            data = fp.read(BUFFER_SIZE)
-            if not data:
-                print('File {} send over.'.format(absolute_path.split('/')[-1]))
-                break
-            self.socket.send(data)
+
+        with tqdm(total=filesize, unit='B', unit_divisor=1024, unit_scale=True) as pbar:
+            while True:
+                data = fp.read(BUFFER_SIZE)
+                if not data:
+                    print('File {} send over.'.format(absolute_path.split('/')[-1]))
+                    break
+                self.socket.send(data)
+                pbar.update(len(data))
         
     
     def close(self):
@@ -50,13 +52,13 @@ def get_file_paths():
     paths = []
     if option:
         target_path = filedialog.askdirectory()
+        t = target_path.split('/')[-1]
         for root, _, files in os.walk(target_path):
             root = root.replace('\\', '/')
             for f in files:
-                relative_path = root.strip(target_path.rstrip('/'))
-                if not relative_path:
-                    relative_path = '.'
-                paths.append((relative_path + '/' + f, root  + '/' + f))
+                absolute_path = root  + '/' + f
+                relative_path = t + '/' + absolute_path.lstrip(target_path)
+                paths.append((relative_path, absolute_path))
     else:
         target_path = filedialog.askopenfilenames()
         for p in target_path:
@@ -66,20 +68,8 @@ def get_file_paths():
 
 
 if __name__ == '__main__':
-    
     client = Client()
     client.build_socket(SERVER_IP)
     paths = get_file_paths()
     for file_path in paths:
         client.send_file(file_path)
-
-    # head = struct.pack('512sl', "123".encode("utf-8"), os.stat("d:/Workspace/src/UpdateTool/client.py").st_size)
-
-    # f = get_file_paths()
-    # print(f)
-    # paths = []
-    # for root, _, files in os.walk("D:/Games/uTorrent"):
-    #     for f in files:
-    #         print(root, os.path.curdir)
-            # paths.append((f, os.path.join(root, f)))
-    # print(paths)
